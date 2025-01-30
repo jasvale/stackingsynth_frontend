@@ -5,6 +5,7 @@ import DataInput from "./DataInput";
 import AutoregressiveParameters from "../parameters/AutoRegressiveParameters"
 import TimeSeriesDropdown from "../dashboard/TimeSeriesDropdown"
 import ParameterList from "../dashboard/ParameterList"
+import ComplexNetwork from "./ComplexNetwork";
 
 const Dashboard = () => {
   const [data, setData] = useState([]);
@@ -12,6 +13,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [dataInputSelection, setDataInputSelection] = useState("AR");
   const [showParameters, setShowParameters] = useState(false);
+  const [showGenerationOptions, setShowGenerationOptions] = useState(false);
 
   const [arParameters, setArParameters] = useState({
     phi: 0.9,
@@ -22,6 +24,13 @@ const Dashboard = () => {
   const handleParametersClick = () => {
     setShowParameters(!showParameters);
   }
+
+  const handleGenerationOptionsClick = () => {
+    if(!showGenerationOptions == false) {
+      setShowParameters(false);
+    }
+    setShowGenerationOptions(!showGenerationOptions);
+  };
 
   const handleDataInputChange = (event) => {
     const selectedValue = event.target.value;
@@ -57,33 +66,33 @@ const Dashboard = () => {
   useEffect(() => {
     fetchTimeSeriesList().then((data) => {
       fetchTimeSeriesById(data[0].uuid)
-      .then((data) => {
-        setData(data.series.map((series) => ({
-          x: series.x,
-          y: series.y,
-          type: "scatter",
-          mode: "lines",
-          name: series.name,
-          line: { color: series.color },
-        }))); // Update state
+        .then((data) => {
+          setData(data.series.map((series) => ({
+            x: series.x,
+            y: series.y,
+            type: "scatter",
+            mode: "lines",
+            name: series.name,
+            line: { color: series.color },
+          }))); // Update state
 
-        const firstSeries = data.series[0]; // Assuming first series has parameters
-        // Set parameters from the selected series
-        if (firstSeries.parameters) {
-          setParameters(firstSeries.parameters);
-        } else {
-          setParameters({});
-        }
+          const firstSeries = data.series[0]; // Assuming first series has parameters
+          // Set parameters from the selected series
+          if (firstSeries.parameters) {
+            setParameters(firstSeries.parameters);
+          } else {
+            setParameters({});
+          }
 
-        setLoading(false);
-      })
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.error("Error loading data:", error);
+        });
+    })
       .catch((error) => {
         console.error("Error loading data:", error);
-      }); 
-    })
-    .catch((error) => {
-      console.error("Error loading data:", error);
-    });
+      });
   }, []); // Run once on mount
 
   // Chart layout
@@ -122,7 +131,7 @@ const Dashboard = () => {
           setParameters(firstSeries.parameters);
         } else {
           setParameters({});
-        } 
+        }
 
         setLoading(false);
       })
@@ -134,15 +143,19 @@ const Dashboard = () => {
   return (
     <>
       {/* Existing Time Series */}
-      <TimeSeriesDropdown onSelect={handleTimeSeriesSelect} />
+      <div className="row mt-3">
+        <TimeSeriesDropdown onSelect={handleTimeSeriesSelect} />
+        <div className="col-xl-3 d-flex align-items-end">
+          <div className="btn-group">
+            <button onClick={handleGenerationOptionsClick} className="btn btn-primary btn-sm">{showGenerationOptions ? "Close" : "Open"} Generation Options</button>
+          </div>
+        </div>
+      </div>
 
       <div className="row mt-3">
-        <h4 className="form-label text-light">Generation Options</h4>
-        <DataInput showParameters={showParameters} handleDataInputChange={handleDataInputChange} handleParametersClick={handleParametersClick} handleSynthesizeClick={handleSynthesizeClick} />
-
         {/* Generation Method */}
         <div className="col-xl-3">
-          <label className="form-label text-light">Data Output</label>
+          <label className="form-label text-light">Transformation</label>
           <select className="form-select form-select-sm" aria-label="Generation Method">
             <option selected></option>
             <option value="InvQG">InvQG</option>
@@ -150,29 +163,41 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Pass arParameters and setArParameters to AutoregressiveParameters */}
-      {showParameters && (
+      {showGenerationOptions && (
         <>
           <hr style={hrStyle} />
-          <AutoregressiveParameters
-            arParameters={arParameters}
-            setArParameters={setArParameters}
-            handleSynthesizeClick={handleSynthesizeClick}
-          />
+          <div className="row mt-3">
+            <h4 className="form-label text-light">Generation Options</h4>
+            <DataInput showParameters={showParameters} handleDataInputChange={handleDataInputChange} handleParametersClick={handleParametersClick} handleSynthesizeClick={handleSynthesizeClick} />
+          </div>
           <hr style={hrStyle} />
+          {/* Pass arParameters and setArParameters to AutoregressiveParameters */}
+          {showParameters && (
+            <>
+              <AutoregressiveParameters
+                arParameters={arParameters}
+                setArParameters={setArParameters}
+                handleSynthesizeClick={handleSynthesizeClick}
+              />
+              <hr style={hrStyle} />
+            </>
+          )}
         </>
       )}
 
       {/* Plotly Chart */}
-      <div className="row mt-3">        
+      <div className="row mt-3">
         {/* Show parameters above the chart */}
         <ParameterList parameters={parameters} />
-        <div className="col-xl-12">
+        <div className="col-xl-6">
           {loading ? (
             <p>Loading...</p>
           ) : (
-            <Plot data={data} layout={layout} style={{ width: "100%", height: "100%" }} />
+            <Plot data={data} layout={layout} style={{ width: "100%", height: "500px" }} />
           )}
+        </div>
+        <div className="col-xl-6">
+          <ComplexNetwork />
         </div>
       </div>
     </>

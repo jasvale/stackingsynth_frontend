@@ -30,27 +30,25 @@ const TimeSeriesDropdown = ({ onSelect }) => {
         }
     };
 
-    return (
-        <div className="row mt-3">
-            <div className="col-xl-5">
-                <label className="form-label text-light">Select Time Series</label>
-                {loading ? (
-                    <p>Loading...</p>
-                ) : error ? (
-                    <p style={{ color: "red" }}>Error: {error}</p>
-                ) : (
-                    <select className="form-select form-select-sm" aria-label="Generation Method" value={selectedUuid} onChange={handleChange}>
-                        <option value="" disabled>
-                            Choose a Time Series
+    return (        
+        <div className="col-xl-5">
+            <label className="form-label text-light">Select Time Series</label>
+            {loading ? (
+                <p>Loading...</p>
+            ) : error ? (
+                <p style={{ color: "red" }}>Error: {error}</p>
+            ) : (
+                <select className="form-select form-select-sm" aria-label="Generation Method" value={selectedUuid} onChange={handleChange}>
+                    <option value="" disabled>
+                        Choose a Time Series
+                    </option>
+                    {timeSeriesList.map((series) => (
+                        <option key={series.uuid} value={series.uuid}>
+                            {`${series.name} (${series.uuid})`}
                         </option>
-                        {timeSeriesList.map((series) => (
-                            <option key={series.uuid} value={series.uuid}>
-                                {`${series.name} (${series.uuid})`}
-                            </option>
-                        ))}
-                    </select>
-                )}
-            </div>
+                    ))}
+                </select>
+            )}
         </div>
     );
 };

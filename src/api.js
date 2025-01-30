@@ -63,3 +63,17 @@ export const fetchTimeSeriesById = async (seriesId) => {
     throw error; // Rethrow the error to handle it in the calling code
   }
 };
+
+export const fetchNetworkData = async () => {
+  try {
+    const response = await fetch(`${BASE_URL}/api/network`);
+    if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch time series data:", error);
+    throw error;
+  }
+};

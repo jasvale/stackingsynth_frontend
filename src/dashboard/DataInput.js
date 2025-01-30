@@ -15,7 +15,7 @@ const DataInput = ({showParameters, handleDataInputChange, handleParametersClick
             {/* Input Options */}
             <div className="col-xl-3 d-flex align-items-end">
                 <div className="btn-group">
-                    <button onClick={handleParametersClick} className="btn btn-primary btn-sm">{showParameters ? "Toogle" : "Toogle"} Parameters</button>
+                    <button onClick={handleParametersClick} className="btn btn-primary btn-sm">{showParameters ? "Close" : "Open"} Parameters</button>
                     <button onClick={handleSynthesizeClick} className="btn btn-sm btn-success">Synthesize!</button>
                 </div>
             </div>
