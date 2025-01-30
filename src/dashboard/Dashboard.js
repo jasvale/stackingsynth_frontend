@@ -14,6 +14,7 @@ const Dashboard = () => {
   const [dataInputSelection, setDataInputSelection] = useState("AR");
   const [showParameters, setShowParameters] = useState(false);
   const [showGenerationOptions, setShowGenerationOptions] = useState(false);
+  const [selectedUuid, setSelectedUuid] = useState(null);
 
   const [arParameters, setArParameters] = useState({
     phi: 0.9,
@@ -26,7 +27,7 @@ const Dashboard = () => {
   }
 
   const handleGenerationOptionsClick = () => {
-    if(!showGenerationOptions == false) {
+    if (!showGenerationOptions == false) {
       setShowParameters(false);
     }
     setShowGenerationOptions(!showGenerationOptions);
@@ -66,8 +67,9 @@ const Dashboard = () => {
   useEffect(() => {
     fetchTimeSeriesList().then((data) => {
       fetchTimeSeriesById(data[0].uuid)
-        .then((data) => {
-          setData(data.series.map((series) => ({
+        .then((singleSeriesData) => {
+
+          setData(singleSeriesData.series.map((series) => ({
             x: series.x,
             y: series.y,
             type: "scatter",
@@ -76,14 +78,14 @@ const Dashboard = () => {
             line: { color: series.color },
           }))); // Update state
 
-          const firstSeries = data.series[0]; // Assuming first series has parameters
+          const firstSeries = singleSeriesData.series[0]; // Assuming first series has parameters
           // Set parameters from the selected series
           if (firstSeries.parameters) {
             setParameters(firstSeries.parameters);
           } else {
             setParameters({});
           }
-
+          setSelectedUuid(data[0].uuid);
           setLoading(false);
         })
         .catch((error) => {
@@ -94,6 +96,10 @@ const Dashboard = () => {
         console.error("Error loading data:", error);
       });
   }, []); // Run once on mount
+
+  useEffect(() => {
+    console.log("Updated selectedUuid:", selectedUuid);
+  }, [selectedUuid]);
 
   // Chart layout
   const layout = {
@@ -133,6 +139,7 @@ const Dashboard = () => {
           setParameters({});
         }
 
+        setSelectedUuid(uuid);
         setLoading(false);
       })
       .catch((error) => {
@@ -196,8 +203,13 @@ const Dashboard = () => {
             <Plot data={data} layout={layout} style={{ width: "100%", height: "500px" }} />
           )}
         </div>
+
         <div className="col-xl-6">
-          <ComplexNetwork />
+          {selectedUuid ? (
+            <ComplexNetwork selectedUuid={selectedUuid} />            
+          ) : (
+            <p>Loading...</p>
+          )}
         </div>
       </div>
     </>

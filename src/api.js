@@ -64,9 +64,9 @@ export const fetchTimeSeriesById = async (seriesId) => {
   }
 };
 
-export const fetchNetworkData = async () => {
+export const fetchNetworkData = async (uuid) => {
   try {
-    const response = await fetch(`${BASE_URL}/api/network`);
+    const response = await fetch(`${BASE_URL}/api/network/${uuid}`);
     if (!response.ok) {
       throw new Error(`Error: ${response.statusText}`);
     }

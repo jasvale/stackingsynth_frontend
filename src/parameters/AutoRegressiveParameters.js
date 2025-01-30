@@ -41,7 +41,7 @@ const AutoregressiveParameters = ({arParameters, setArParameters, handleSynthesi
                     onChange={handleInputChange}
                 />
             </div>
-
+            
             <div className="col-xl-2 mb-4">
                 <label className="form-label text-light">n (Number of Points)</label>
                 <input
