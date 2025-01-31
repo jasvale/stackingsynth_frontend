@@ -4,41 +4,40 @@ import DataInput from "../DataInput";
 import AutoregressiveParameters from "../AutoRegressiveParameters"
 import Line from "./Line"
 
-const TimeSeriesProject = ({ onSelect, setArParameters, arParameters, handleSynthesizeClick }) => {
-    const [timeSeriesList, setTimeSeriesList] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [selectedUuid, setSelectedUuid] = useState(""); // Track the selected UUID
-    const [showParameters, setShowParameters] = useState(false);
+const TimeSeriesProject = ({ handleProjectChange, setArParameters, arParameters, handleGenerateDataClick, initialSelectedUuid }) => {
+    const [projectList, selectProjectList] = useState([]);
     const [showGenerationOptions, setShowGenerationOptions] = useState(false);
-    const [dataInputSelection, setDataInputSelection] = useState("AR");
 
+
+    const [loading, setLoading] = useState(true);
+    
+    const [showParameters, setShowParameters] = useState(false);
+    
+
+    /**
+     * Runs everytime.
+     * 
+    */
     useEffect(() => {
-        const loadTimeSeriesList = async () => {
-            try {
-                const list = await fetchTimeSeriesProjects();
-                setTimeSeriesList(list);
-            } catch (error) {
-                setError(error.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        loadTimeSeriesList();
+        /**
+         * Fetches for Project List and populates the select.
+        */
+        fetchTimeSeriesProjects()
+            .then((list) => {
+                selectProjectList(list);
+            })
+            .catch((error) => {
+                console.log(error); 
+            })
+            .finally(() => {
+                setLoading(false); 
+            });
     }, []);
 
     const handleParametersClick = () => {
         setShowParameters(!showParameters);
     }
-
-    const handleDataInputChange = (event) => {
-        const selectedValue = event.target.value;
-        setDataInputSelection(selectedValue);
-    };
-
-
-
+    
     const handleGenerationOptionsClick = () => {
         if (!showGenerationOptions == false) {
             setShowParameters(false);
@@ -46,28 +45,18 @@ const TimeSeriesProject = ({ onSelect, setArParameters, arParameters, handleSynt
         setShowGenerationOptions(!showGenerationOptions);
     };
 
-    const handleChange = (event) => {
-        const selectedValue = event.target.value;
-        setSelectedUuid(selectedValue);
-        if (onSelect) {
-            onSelect(selectedValue); // Call parent function if provided
-        }
-    };
-
     return (
         <>
             <div className="col-xl-5">
-                <label className="form-label text-light">Select Time Series</label>
+                <label className="form-label text-light">Existing Project List</label>
                 {loading ? (
-                    <p>Loading...</p>
-                ) : error ? (
-                    <p style={{ color: "red" }}>Error: {error}</p>
+                    <p>Loading.</p>
                 ) : (
-                    <select className="form-select form-select-sm" aria-label="Generation Method" value={selectedUuid} onChange={handleChange}>
+                    <select className="form-select form-select-sm" defaultValue={initialSelectedUuid} onChange={handleProjectChange}>
                         <option value="" disabled>
-                            Choose a Time Series
+                            Choose a Project
                         </option>
-                        {timeSeriesList.map((series) => (
+                        {projectList.map((series) => (
                             <option key={series.uuid} value={series.uuid}>
                                 {`${series.name} (${series.uuid})`}
                             </option>
@@ -85,13 +74,12 @@ const TimeSeriesProject = ({ onSelect, setArParameters, arParameters, handleSynt
                     <Line />
                     <div className="row mt-3">
                         <h4 className="form-label text-light">Generation Options</h4>
-                        <DataInput showParameters={showParameters} handleDataInputChange={handleDataInputChange} handleParametersClick={handleParametersClick} handleSynthesizeClick={handleSynthesizeClick} />
+                        <DataInput showParameters={showParameters}  handleParametersClick={handleParametersClick} handleGenerateDataClick={handleGenerateDataClick} />
                     </div>
                     <Line />
-                    {/* Pass arParameters and setArParameters to AutoregressiveParameters */}
                     {showParameters && (
                         <>
-                            <AutoregressiveParameters arParameters={arParameters} setArParameters={setArParameters} handleSynthesizeClick={handleSynthesizeClick} />
+                            <AutoregressiveParameters arParameters={arParameters} setArParameters={setArParameters} handleGenerateDataClick={handleGenerateDataClick} />
                             <Line />
                         </>
                     )}

@@ -1,4 +1,4 @@
-const DataInput = ({showParameters, handleDataInputChange, handleParametersClick, handleSynthesizeClick}) => {
+const DataInput = ({showParameters, handleDataInputChange, handleParametersClick, handleGenerateDataClick}) => {
     return (
         <>
             {/* Data Input */}
@@ -16,7 +16,7 @@ const DataInput = ({showParameters, handleDataInputChange, handleParametersClick
             <div className="col-xl-3 d-flex align-items-end">
                 <div className="btn-group">
                     <button onClick={handleParametersClick} className="btn btn-primary btn-sm">{showParameters ? "Close" : "Open"} Parameters</button>
-                    <button onClick={handleSynthesizeClick} className="btn btn-sm btn-success">Synthesize!</button>
+                    <button onClick={handleGenerateDataClick} className="btn btn-sm btn-success">Generate!</button>
                 </div>
             </div>
         </>

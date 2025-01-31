@@ -1,6 +1,6 @@
 import React from "react";
 
-const AutoregressiveParameters = ({arParameters, setArParameters, handleSynthesizeClick,}) => {
+const AutoregressiveParameters = ({arParameters, setArParameters, handleGenerateDataClick}) => {
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
@@ -29,7 +29,7 @@ const AutoregressiveParameters = ({arParameters, setArParameters, handleSynthesi
             </div>
 
             <div className="col-xl-2 mb-4">
-                <label className="form-label text-light">Sigma (Standard Deviation)</label>
+                <label className="form-label text-light">Sigma (Std. Dev)</label>
                 <input
                     className="form-control"
                     type="number"
@@ -43,7 +43,7 @@ const AutoregressiveParameters = ({arParameters, setArParameters, handleSynthesi
             </div>
             
             <div className="col-xl-2 mb-4">
-                <label className="form-label text-light">n (Number of Points)</label>
+                <label className="form-label text-light">n (Nr. of Points)</label>
                 <input
                     className="form-control"
                     type="number"
@@ -58,7 +58,7 @@ const AutoregressiveParameters = ({arParameters, setArParameters, handleSynthesi
             <div className="row">
                 <div className="col-xl-2 d-flex">
                     <div className="btn-group">
-                        <button onClick={handleSynthesizeClick} className="btn btn-sm btn-success">Synthesize!</button>
+                        <button onClick={handleGenerateDataClick} className="btn btn-sm btn-success">Generate!</button>
                     </div>
                 </div>
             </div>

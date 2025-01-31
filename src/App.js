@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { fetchTimeSeriesById, callApiCreateProject, generateSyntheticVersionByProjectUUID } from "./api";
+import { fetchTimeSeriesById, callApiCreateProject, generateSyntheticVersionByProjectUUID, fetchTimeSeriesProjects } from "./api";
 import TimeSeriesProject from "./components/TimeSeriesProject"
 import ParameterList from "./ParameterList"
 import ComplexNetwork from "./components/ComplexNetwork";
@@ -15,6 +15,17 @@ const App = () => {
     n: 2000,
   });
 
+  /**
+   * Handle the user change in the selection of project lists.
+   */
+  const handleProjectChange = (event) => {
+    setSelectedUuid(event.target.value);
+  };
+
+  
+
+
+
   const generateSyntheticData = (selectedUuid) => {
     generateSyntheticVersionByProjectUUID(selectedUuid)
       .then((singleSyntheticSeriesData) => {
@@ -24,8 +35,8 @@ const App = () => {
         console.error("Error loading data:", error);
       });
   }
-
-  const handleSynthesizeClick = () => {
+  
+  const handleGenerateDataClick = () => {
     callApiCreateProject(arParameters.phi, arParameters.sigma, arParameters.n).then((timeSeriesProject) => {
       generateSyntheticData(timeSeriesProject.series_id);
     }).catch((error) => {
@@ -37,35 +48,29 @@ const App = () => {
     setSelectedUuid("");
     generateSyntheticData(selectedUuid);
   };
-
+  
   useEffect(() => {
-    console.log("Updated selectedUuid:", selectedUuid);
-  }, [selectedUuid]);
+    fetchTimeSeriesProjects().then((list) => {
+      setSelectedUuid(list[0].uuid);
+    })
+    .catch((error) => {
+      console.error("Error loading data:", error);
+    });
+  }, []);
 
-  const handleTimeSeriesSelect = (uuid) => {
-    fetchTimeSeriesById(uuid)
-      .then((data) => {
-
-        const firstSeries = data.series[0]; // Assuming first series has parameters
-        // Set parameters from the selected series
-        if (firstSeries.parameters) {
-          setParameters(firstSeries.parameters);
-        } else {
-          setParameters({});
-        }
-
-        setSelectedUuid(uuid);
-      })
-      .catch((error) => {
-        console.error("Error loading data:", error);
-      });
-  };
+  
 
   return (
     <>
       {/* Existing Time Series */}
       <div className="row mt-3">
-        <TimeSeriesProject onSelect={handleTimeSeriesSelect} setArParameters={setArParameters} arParameters={arParameters} handleSynthesizeClick={handleSynthesizeClick} />
+        <TimeSeriesProject 
+          handleProjectChange={handleProjectChange} 
+          setArParameters={setArParameters} 
+          arParameters={arParameters} 
+          handleGenerateDataClick={handleGenerateDataClick} 
+          initialSelectedUuid={selectedUuid}
+        />
       </div>
 
       {/* Show parameters above the chart */}
