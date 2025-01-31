@@ -29,9 +29,9 @@ export const fetchTimeSeriesById = async (project_uuid) => {
 };
 
 
-export const fetchAR1TimeSeriesData = async (phi, sigma = 1.0, n = 1000, color = "blue") => {
+export const callApiCreateProject = async (phi, sigma = 1.0, n = 1000, color = "blue") => {
   try {
-    const response = await fetch(`${BASE_URL}/generate-time-series`, {
+    const response = await fetch(`${BASE_URL}/create-project`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -54,11 +54,25 @@ export const fetchAR1TimeSeriesData = async (phi, sigma = 1.0, n = 1000, color =
 
 
 
+export const fetchSyntheticNetworkData = async (project_uuid) => {
+  try {
+    const response = await fetch(`${BASE_URL}/get-synthetic-network/${project_uuid}`);
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch time series data:", error);
+    throw error;
+  }
+};
+
 
 export const fetchNetworkData = async (project_uuid) => {
   try {
     const response = await fetch(`${BASE_URL}/get-network/${project_uuid}`);
-    //const response = await fetch(`${BASE_URL}/api/network`);
 
     if (!response.ok) {
       throw new Error(`Error: ${response.statusText}`);
@@ -73,7 +87,21 @@ export const fetchNetworkData = async (project_uuid) => {
 
 export const fetchSyntheticTimeSeriesById = async (project_uuid) => {
   try {
-    const response = await fetch(`${BASE_URL}/api/synthetic/${project_uuid}`);
+    const response = await fetch(`${BASE_URL}/load-synthetic/${project_uuid}`);
+    if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data; // Return the fetched time series data
+  } catch (error) {
+    console.error("Failed to fetch time series data:", error);
+    throw error; // Rethrow the error to handle it in the calling code
+  }
+};
+
+export const generateSyntheticVersionByProjectUUID = async (project_uuid) => {
+  try {
+    const response = await fetch(`${BASE_URL}/generate-synthetic/${project_uuid}`);
     if (!response.ok) {
       throw new Error(`Error: ${response.statusText}`);
     }

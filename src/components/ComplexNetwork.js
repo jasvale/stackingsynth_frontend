@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { ForceGraph2D } from "react-force-graph";
-import { fetchNetworkData } from "../api";
+import { fetchNetworkData, fetchSyntheticNetworkData } from "../api";
 
-const ComplexNetwork = ({ project_uuid, class_name }) => {
+const ComplexNetwork = ({ project_uuid, class_name, data_type }) => {
   const [networkData, setNetworkData] = useState({ nodes: [], links: [] });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
-    fetchNetworkData(project_uuid)
+    if(data_type == "baseline_timeseries") {
+      fetchNetworkData(project_uuid)
       .then((data) => {
         setNetworkData(data);
         setLoading(false);
@@ -16,6 +17,18 @@ const ComplexNetwork = ({ project_uuid, class_name }) => {
       .catch((error) => {
         console.error("Error loading network data:", error);
       });
+    }
+    else if(data_type == "synthetic_timeseries") {
+      fetchSyntheticNetworkData(project_uuid)
+      .then((data) => {
+        setNetworkData(data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error loading network data:", error);
+      });
+    }
+    
   }, [project_uuid]);
 
   return (
@@ -31,7 +44,7 @@ const ComplexNetwork = ({ project_uuid, class_name }) => {
             linkDirectionalArrowRelPos={1}
             nodeLabel={(node) => `${node.name}`}
             width={636}
-            height={500}
+            height={400}
           />
         </div>        
       )}
