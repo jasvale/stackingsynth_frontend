@@ -100,15 +100,17 @@ export const fetchSyntheticTimeSeriesById = async (project_uuid) => {
 };
 
 export const generateSyntheticVersionByProjectUUID = async (project_uuid) => {
+  if(project_uuid === undefined || project_uuid === "") {
+      alert("Variable project_uuid is null or empty, cannot call api.")
+  }
   try {
     const response = await fetch(`${BASE_URL}/generate-synthetic/${project_uuid}`);
     if (!response.ok) {
       throw new Error(`Error: ${response.statusText}`);
     }
-    const data = await response.json();
-    return data; // Return the fetched time series data
+    return await response.json();
   } catch (error) {
     console.error("Failed to fetch time series data:", error);
-    throw error; // Rethrow the error to handle it in the calling code
+    throw error;
   }
 };

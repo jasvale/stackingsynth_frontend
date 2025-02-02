@@ -1,23 +1,50 @@
 import React, { useState, useEffect } from "react";
-import { fetchTimeSeriesProjects } from "../api";
-import DataInput from "../DataInput";
-import AutoregressiveParameters from "../AutoRegressiveParameters"
-import Line from "./Line"
+import { fetchTimeSeriesProjects, callApiCreateProject, generateSyntheticVersionByProjectUUID } from "../api";
+import TimeSeriesGenerationOptions from "./TimeSeriesGenerationOptions";
+import { useAppContext } from "../AppContext";
 
-const TimeSeriesProject = ({ handleProjectChange, setArParameters, arParameters, handleGenerateDataClick, initialSelectedUuid }) => {
+const TimeSeriesProject = ({ }) => {
+    const { arParameters, 
+        setSelectedUuid, selectedUuid, 
+        setLoading, loading, 
+        setShowLoadingBaselineDashboard, setShowLoadingSyntheticDashboard 
+    } = useAppContext();
+
     const [projectList, selectProjectList] = useState([]);
     const [showGenerationOptions, setShowGenerationOptions] = useState(false);
-
-
-    const [loading, setLoading] = useState(true);
-    
     const [showParameters, setShowParameters] = useState(false);
-    
+
+    const generateSyntheticData = (selectedUuid) => {
+        generateSyntheticVersionByProjectUUID(selectedUuid)
+            .then((singleSyntheticSeriesData) => {
+                setSelectedUuid(selectedUuid);
+            })
+            .catch((error) => {
+                console.error("Error loading data:", error);
+            });
+    };
 
     /**
-     * Runs everytime.
-     * 
-    */
+     * Handle the user change in the selection of project lists.
+     */
+    const handleProjectChange = (event) => {
+        setSelectedUuid(event.target.value);
+        setShowLoadingBaselineDashboard(true);
+        setShowLoadingSyntheticDashboard(true);
+    };
+
+    const handleGenerateDataClick = (event) => {
+        callApiCreateProject(arParameters.phi, arParameters.sigma, arParameters.n)
+            .then((timeSeriesProject) => {
+                generateSyntheticData(timeSeriesProject.series_id);
+                setShowLoadingBaselineDashboard(true);
+                setShowLoadingSyntheticDashboard(true);
+            })
+            .catch((error) => {
+                console.error("Error loading data:", error);
+            });
+    };
+
     useEffect(() => {
         /**
          * Fetches for Project List and populates the select.
@@ -27,17 +54,17 @@ const TimeSeriesProject = ({ handleProjectChange, setArParameters, arParameters,
                 selectProjectList(list);
             })
             .catch((error) => {
-                console.log(error); 
+                console.log(error);
             })
             .finally(() => {
-                setLoading(false); 
+                setLoading(false);
             });
-    }, []);
+    }, []); // Runs everytime
 
     const handleParametersClick = () => {
         setShowParameters(!showParameters);
     }
-    
+
     const handleGenerationOptionsClick = () => {
         if (!showGenerationOptions == false) {
             setShowParameters(false);
@@ -52,7 +79,7 @@ const TimeSeriesProject = ({ handleProjectChange, setArParameters, arParameters,
                 {loading ? (
                     <p>Loading.</p>
                 ) : (
-                    <select className="form-select form-select-sm" defaultValue={initialSelectedUuid} onChange={handleProjectChange}>
+                    <select className="form-select form-select-sm" defaultValue={selectedUuid} onChange={handleProjectChange}>
                         <option value="" disabled>
                             Choose a Project
                         </option>
@@ -66,25 +93,15 @@ const TimeSeriesProject = ({ handleProjectChange, setArParameters, arParameters,
             </div>
             <div className="col-xl-3 d-flex align-items-end">
                 <div className="btn-group">
-                    <button onClick={handleGenerationOptionsClick} className="btn btn-primary btn-sm">{showGenerationOptions ? "Close" : "Open"} Generation Options</button>
+                    <button type="button" onClick={handleGenerationOptionsClick} className="btn btn-primary btn-sm">{showGenerationOptions ? "Close" : "Open"} Generation Options</button>
                 </div>
             </div>
-            {showGenerationOptions && (
-                <>
-                    <Line />
-                    <div className="row mt-3">
-                        <h4 className="form-label text-light">Generation Options</h4>
-                        <DataInput showParameters={showParameters}  handleParametersClick={handleParametersClick} handleGenerateDataClick={handleGenerateDataClick} />
-                    </div>
-                    <Line />
-                    {showParameters && (
-                        <>
-                            <AutoregressiveParameters arParameters={arParameters} setArParameters={setArParameters} handleGenerateDataClick={handleGenerateDataClick} />
-                            <Line />
-                        </>
-                    )}
-                </>
-            )}
+            <TimeSeriesGenerationOptions
+                showGenerationOptions={showGenerationOptions}
+                showParameters={showParameters}
+                handleParametersClick={handleParametersClick}
+                handleGenerateDataClick={handleGenerateDataClick}
+            />
         </>
     );
 };

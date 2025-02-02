@@ -1,6 +1,10 @@
-import React from "react";
+import {React} from "react";
 
-const AutoregressiveParameters = ({arParameters, setArParameters, handleGenerateDataClick}) => {
+import { useAppContext } from "../AppContext";
+
+const AutoregressiveParameters = ({ handleGenerateDataClick}) => {
+
+    const { arParameters, setArParameters } = useAppContext();
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
@@ -58,7 +62,7 @@ const AutoregressiveParameters = ({arParameters, setArParameters, handleGenerate
             <div className="row">
                 <div className="col-xl-2 d-flex">
                     <div className="btn-group">
-                        <button onClick={handleGenerateDataClick} className="btn btn-sm btn-success">Generate!</button>
+                        <button type="button" onClick={handleGenerateDataClick} className="btn btn-sm btn-success">Generate!</button>
                     </div>
                 </div>
             </div>
