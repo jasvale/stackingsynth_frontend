@@ -17,7 +17,7 @@ const AutoregressiveParameters = ({ handleGenerateDataClick}) => {
     return (
         <div className="row mt-3">
             <h4 className="form-label text-light">Data Input Parameters</h4>
-
+            
             <div className="col-xl-2 mb-4">
                 <label className="form-label text-light">Phi (AR Coefficient)</label>
                 <input

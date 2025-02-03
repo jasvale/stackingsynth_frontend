@@ -1,8 +1,17 @@
+import {React} from "react";
 import AutoregressiveParameters from "../model_parameters/AutoRegressiveParameters"
 import Line from "./Line"
+import { useAppContext } from "../AppContext";
 
-const TimeSeriesGenerationOptions = ({ showGenerationOptions, showParameters, handleParametersClick, handleGenerateDataClick}) => {   
+const TimeSeriesGenerationOptions = ({ showGenerationOptions, handleGenerateDataClick}) => {   
+    const { 
+        showParameters, setShowParameters
+    } = useAppContext();
 
+    const handleParametersClick = () => {
+        setShowParameters(!showParameters);
+    }
+    
     return (
         <>
             {showGenerationOptions && (
@@ -38,8 +47,6 @@ const TimeSeriesGenerationOptions = ({ showGenerationOptions, showParameters, ha
                     )}
                 </>
             )}
-
-
         </>
     );
 };

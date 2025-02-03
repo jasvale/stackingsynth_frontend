@@ -1,22 +1,25 @@
-import React, { useEffect, useState } from "react";
+import { React, useEffect } from "react";
 import { fetchTimeSeriesProjects, generateSyntheticVersionByProjectUUID } from "./api";
 import TimeSeriesProject from "./components/TimeSeriesProject";
 import ComplexNetwork from "./components/ComplexNetwork";
-import TimeSeriesLineChart from "./TimeSeriesLineChart";
+import TimeSeriesLineChart from "./components/TimeSeriesLineChart";
 import { AppProvider, useAppContext } from "./AppContext";
 
 const AppContent = () => {
   const {
     selectedUuid, setSelectedUuid,
-    showLoadingBaselineDashboard, setShowLoadingBaselineDashboard,
-    showLoadingSyntheticDashboard, setShowLoadingSyntheticDashboard
+    forceReloadBaselineTimeSeries, setForceReloadBaselineTimeSeries,
+    forceReloadBaselineNetwork, setForceReloadBaselineNetwork,
+    forceReloadSyntheticTimeSeries, setForceReloadSyntheticTimeSeries,
+    forceReloadSyntheticNetwork, setForceReloadSyntheticNetwork
   } = useAppContext();
 
   const handleCreateSyntheticDataClick = () => {
     generateSyntheticVersionByProjectUUID(selectedUuid)
       .then((result) => {
         if (result.status == "OK") {
-          setShowLoadingSyntheticDashboard(true);
+          setForceReloadSyntheticTimeSeries(true);
+          setForceReloadSyntheticNetwork(true);
         }
       })
       .catch((error) => {
@@ -26,15 +29,18 @@ const AppContent = () => {
   };
 
   useEffect(() => {
-    fetchTimeSeriesProjects()
-      .then((list) => {
-        setSelectedUuid(list[0].uuid);
-        setShowLoadingBaselineDashboard(false);
-        setShowLoadingSyntheticDashboard(false);
-      })
-      .catch((error) => {
-        console.error("Error loading data:", error);
-      });
+    console.log("useEffect of [App.js]");
+    if (selectedUuid === undefined) {
+      fetchTimeSeriesProjects()
+        .then((list) => {
+          setSelectedUuid(list[0].uuid);
+          setForceReloadSyntheticTimeSeries(true);
+          setForceReloadSyntheticNetwork(true);
+        })
+        .catch((error) => {
+          console.error("Error loading data:", error);
+        });
+    }
   }, []);
 
   return (
@@ -44,22 +50,19 @@ const AppContent = () => {
         <TimeSeriesProject />
       </div>
 
-      {/* Plotly Chart */}
-      <div className="row mt-3">
+      <div className="row mt-3">        
         <TimeSeriesLineChart
           project_uuid={selectedUuid}
           class_name={"col-xl-6"}
           data_type={"baseline_timeseries"}
-          showLoading={showLoadingBaselineDashboard}
-          setShowLoading={setShowLoadingBaselineDashboard}
-        />
+          forceReload={forceReloadBaselineTimeSeries}
+          setForceReload={setForceReloadBaselineTimeSeries} />
         <ComplexNetwork
           project_uuid={selectedUuid}
           class_name={"col-xl-6"}
           data_type={"baseline_timeseries"}
-          showLoading={showLoadingBaselineDashboard}
-          setShowLoading={setShowLoadingBaselineDashboard}
-        />
+          forceReload={forceReloadBaselineNetwork}
+          setForceReload={setForceReloadBaselineNetwork} />
       </div>
 
       <div className="row mt-3">
@@ -77,15 +80,14 @@ const AppContent = () => {
           project_uuid={selectedUuid}
           class_name={"col-xl-6"}
           data_type={"synthetic_timeseries"}
-          showLoading={showLoadingSyntheticDashboard}
-          setShowLoading={setShowLoadingSyntheticDashboard}
-        />
+          forceReload={forceReloadSyntheticTimeSeries}
+          setForceReload={setForceReloadSyntheticTimeSeries} />
         <ComplexNetwork
           project_uuid={selectedUuid}
           class_name={"col-xl-6"}
           data_type={"synthetic_timeseries"}
-          showLoading={showLoadingSyntheticDashboard}
-          setShowLoading={setShowLoadingSyntheticDashboard}
+          forceReload={forceReloadSyntheticNetwork}
+          setForceReload={setForceReloadSyntheticNetwork}
         />
       </div>
     </>

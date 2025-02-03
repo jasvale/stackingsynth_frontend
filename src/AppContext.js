@@ -4,34 +4,36 @@ const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
 
-  // AR Parameters state
   const [arParameters, setArParameters] = useState({
     phi: 0.9,
     sigma: 1.0,
     n: 2000,
   });
-
-  // Selected UUID state
-  const [selectedUuid, setSelectedUuid] = useState(null);
-
-  const [loading, setLoading] = useState(true);
-
-  const [showLoadingSyntheticDashboard, setShowLoadingSyntheticDashboard] = useState(true);
-  const [showLoadingBaselineDashboard, setShowLoadingBaselineDashboard] = useState(true);
-
-  // Additional states can be added here if needed
-
+  
+  const [selectedUuid, setSelectedUuid] = useState(undefined);
+  const [projectsList, setProjectsList] = useState([]);
+  const [reloadProjectsList, setReloadProjectsList] = useState(true);
+  const [forceReloadBaselineTimeSeries, setForceReloadBaselineTimeSeries] = useState(true);
+  const [forceReloadBaselineNetwork, setForceReloadBaselineNetwork] = useState(true);
+  const [forceReloadSyntheticTimeSeries, setForceReloadSyntheticTimeSeries] = useState(true);
+  const [forceReloadSyntheticNetwork, setForceReloadSyntheticNetwork] = useState(true);
+  const [showParameters, setShowParameters] = useState(false);
+  
   return (
-    <AppContext.Provider value={{ 
-        arParameters, setArParameters, 
-        selectedUuid, setSelectedUuid, 
-        loading, setLoading, 
-        showLoadingSyntheticDashboard, setShowLoadingSyntheticDashboard,
-        showLoadingBaselineDashboard, setShowLoadingBaselineDashboard }}>
+    <AppContext.Provider value={{
+        arParameters, setArParameters,
+        selectedUuid, setSelectedUuid,
+        projectsList, setProjectsList,
+        reloadProjectsList, setReloadProjectsList,
+        forceReloadBaselineTimeSeries, setForceReloadBaselineTimeSeries,
+        forceReloadBaselineNetwork, setForceReloadBaselineNetwork,
+        forceReloadSyntheticTimeSeries, setForceReloadSyntheticTimeSeries,
+        forceReloadSyntheticNetwork, setForceReloadSyntheticNetwork,
+        showParameters, setShowParameters
+      }}>
       {children}
     </AppContext.Provider>
   );
 };
 
-// Custom hook to consume the context
 export const useAppContext = () => useContext(AppContext);

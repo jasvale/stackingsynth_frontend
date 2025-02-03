@@ -1,8 +1,8 @@
-import { fetchTimeSeriesById, fetchSyntheticTimeSeriesById } from "./api";
+import { fetchTimeSeriesById, fetchSyntheticTimeSeriesById } from "../api";
 import React, { useState, useEffect } from "react";
 import Plot from "react-plotly.js";
 
-const TimeSeriesLineChart = ({ project_uuid, class_name, data_type, showLoading, setShowLoading }) => {
+const TimeSeriesLineChart = ({ project_uuid, class_name, data_type, forceReload, setForceReload }) => {
     const [chartData, setChartData] = useState([]);
 
     const layout = {
@@ -12,8 +12,11 @@ const TimeSeriesLineChart = ({ project_uuid, class_name, data_type, showLoading,
         legend: { orientation: "h", x: 0.5, xanchor: "center", y: -0.2 },
         showlegend: true, 
     };
-
+    
     useEffect(() => {
+        if(project_uuid === undefined) {
+            return ;
+        }
         if(data_type == "baseline_timeseries") {
             fetchTimeSeriesById(project_uuid)
             .then((timeSeriesData) => {
@@ -25,7 +28,7 @@ const TimeSeriesLineChart = ({ project_uuid, class_name, data_type, showLoading,
                     name: series.name,
                     line: { color: series.color },
                 })));
-                setShowLoading(false);
+                setForceReload(false);
             })
             .catch((error) => {
                 console.error("Error loading data:", error);
@@ -42,17 +45,17 @@ const TimeSeriesLineChart = ({ project_uuid, class_name, data_type, showLoading,
                     name: series.name,
                     line: { color: series.color },
                 })));
-                setShowLoading(false);
+                setForceReload(false);
             })
             .catch((error) => {
               console.error("Error loading data:", error);
             });
         }        
-    }, [showLoading]); // Updates everytime project_uuid changes
+    }, [project_uuid, forceReload]); // Updates everytime project_uuid changes
 
     return (
         <div className={class_name}>
-            {showLoading ? (
+            {forceReload ? (
                 <p>Loading...</p>
             ) : (
                 <Plot data={chartData} layout={layout} style={{ width: "100%", height: "400px" }} /> 
