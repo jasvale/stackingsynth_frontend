@@ -29,28 +29,26 @@ const ComplexNetwork = ({ project_uuid, class_name, data_type, forceReload, setF
           console.error("Error loading network data:", error);
         });
     }
-
   }, [project_uuid, forceReload]);
 
   const colorPalette = {
-    nodeBackground: '#3498db',  // Soft blue
+    nodeBackground: '#3498db',
     nodeText: 'white',
-    linkColor: '#2c3e50',       // Dark blue-gray
-    weightColor: '#34495e'      // Slightly lighter dark blue-gray
+    linkColor: '#2c3e50',
+    weightColor: '#34495e'
   };
 
   const nodeCanvasObject = (node, ctx, globalScale) => {
-    const baseNodeRadius = 8;  // Reduced from 15
-    const nodeRadius = baseNodeRadius / globalScale;  // Dynamic sizing
+    const baseNodeRadius = 8;
+    const nodeRadius = baseNodeRadius / globalScale;
     const fontSize = 10 / globalScale;
 
     ctx.beginPath();
     ctx.arc(node.x, node.y, nodeRadius, 0, 2 * Math.PI, false);
     ctx.fillStyle = colorPalette.nodeBackground;
     ctx.fill();
-
     ctx.strokeStyle = '#2980b9';
-    ctx.lineWidth = 1 / globalScale;  // Thin border that scales
+    ctx.lineWidth = 1 / globalScale;
     ctx.stroke();
 
     ctx.font = `${fontSize}px Inter, Arial, sans-serif`;
@@ -60,74 +58,90 @@ const ComplexNetwork = ({ project_uuid, class_name, data_type, forceReload, setF
     ctx.fillText(node.name, node.x, node.y);
   };
 
-  const linkCanvasObject = (link, ctx, globalScale) => {
-    if (link.source === link.target) {
-      const node = link.source;
-      const radius = 20 / globalScale;
-  
-      ctx.beginPath();
-      ctx.arc(node.x, node.y - radius, radius, 0, Math.PI * 2, false);
-      ctx.strokeStyle = colorPalette.linkColor;
-      ctx.lineWidth = Math.max(link.weight * 5 / globalScale, 0.5);
-      ctx.globalAlpha = 0.7;
-      ctx.stroke();
-      ctx.globalAlpha = 1;
-  
-      const fontSize = Math.max(10 / Math.sqrt(globalScale), 3);
-      ctx.font = `${fontSize}px Inter, Arial, sans-serif`;
-      ctx.fillStyle = colorPalette.weightColor;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(link.weight.toFixed(2), node.x, node.y - radius * 1.5);
-      
-      return;
-    }
-  
-    const dx = link.target.x - link.source.x;
-    const dy = link.target.y - link.source.y;
-  
-    // Identify parallel links
-    const linksBetweenNodes = networkData.links.filter(
-      l =>
-        (l.source === link.source && l.target === link.target) ||
-        (l.source === link.target && l.target === link.source)
-    );
-    const linkIndex = linksBetweenNodes.indexOf(link);
-    const totalLinks = linksBetweenNodes.length;
-  
-    // Offset calculation for curvature
-    const curveOffset = (linkIndex - (totalLinks - 1) / 2) * 15; // Spread out the curves
-    const curveFactor = Math.sign(curveOffset) * Math.abs(curveOffset) * 2 / globalScale;
-  
+  const drawLink = (link, ctx, globalScale) => {
+    const start = link.source;
+    const end = link.target;
+    
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    if (distance === 0) return;
+    
+    const curvature = 0.2;
+    const midX = (start.x + end.x) / 2;
+    const midY = (start.y + end.y) / 2;
+    
+    const perpX = -dy * curvature;
+    const perpY = dx * curvature;
+    
+    const controlX = midX + perpX;
+    const controlY = midY + perpY;
+    
+    const nodeRadius = 8;
+    const t = 1 - ((nodeRadius / globalScale) + 2) / distance;
+    
+    const arrowX = Math.pow(1-t, 2) * start.x + 
+                  2 * (1-t) * t * controlX + 
+                  Math.pow(t, 2) * end.x;
+    const arrowY = Math.pow(1-t, 2) * start.y + 
+                  2 * (1-t) * t * controlY + 
+                  Math.pow(t, 2) * end.y;
+    
+    // Reduced thickness parameters
+    const baseWidth = 0.1;  // Reduced from 1
+    const weightMultiplier = 0.1;  // Reduced from 0.5
+    const lineWidth = baseWidth + (link.weight || 1) * weightMultiplier;
+    
+    // Draw the curved line
     ctx.beginPath();
-    ctx.moveTo(link.source.x, link.source.y);
-  
-    ctx.quadraticCurveTo(
-      link.source.x + dx / 2 + curveFactor,
-      link.source.y + dy / 2 - curveFactor,
-      link.target.x,
-      link.target.y
-    );
-  
+    ctx.moveTo(start.x, start.y);
+    ctx.quadraticCurveTo(controlX, controlY, end.x, end.y);
     ctx.strokeStyle = colorPalette.linkColor;
-    ctx.lineWidth = Math.max(link.weight * 5 / globalScale, 0.5);
-    ctx.globalAlpha = 0.7;
+    ctx.lineWidth = lineWidth;
     ctx.stroke();
-    ctx.globalAlpha = 1;
-  
-    // Position weight text
-    const fontSize = Math.max(10 / Math.sqrt(globalScale), 3);
-    const weightX = link.source.x + dx / 2 + curveFactor;
-    const weightY = link.source.y + dy / 2 - curveFactor;
-  
+    
+    const arrowAngle = Math.atan2(
+      end.y - (2 * (1-t) * t * controlY + Math.pow(t, 2) * end.y),
+      end.x - (2 * (1-t) * t * controlX + Math.pow(t, 2) * end.x)
+    );
+    
+    const arrowLength = 2;
+    ctx.beginPath();
+    ctx.moveTo(arrowX, arrowY);
+    ctx.lineTo(
+      arrowX - arrowLength * Math.cos(arrowAngle - Math.PI / 6),
+      arrowY - arrowLength * Math.sin(arrowAngle - Math.PI / 6)
+    );
+    ctx.lineTo(
+      arrowX - arrowLength * Math.cos(arrowAngle + Math.PI / 6),
+      arrowY - arrowLength * Math.sin(arrowAngle + Math.PI / 6)
+    );
+    ctx.closePath();
+    ctx.fillStyle = colorPalette.linkColor;
+    ctx.fill();
+    
+    // Draw weight label
+    const labelT = 0.5;
+    const labelX = Math.pow(1-labelT, 2) * start.x + 
+                  2 * (1-labelT) * labelT * controlX + 
+                  Math.pow(labelT, 2) * end.x;
+    const labelY = Math.pow(1-labelT, 2) * start.y + 
+                  2 * (1-labelT) * labelT * controlY + 
+                  Math.pow(labelT, 2) * end.y;
+    
+    const labelOffset = 8;
+    const fontSize = 10 / globalScale;
+    
     ctx.font = `${fontSize}px Inter, Arial, sans-serif`;
-    ctx.fillStyle = colorPalette.weightColor;
     ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(link.weight.toFixed(2), weightX, weightY);
+    ctx.textBaseline = 'bottom';
+    ctx.fillStyle = colorPalette.weightColor;
+    
+    const weightLabel = Number(link.weight).toFixed(2);
+    ctx.fillText(weightLabel, labelX, labelY - labelOffset);
   };
   
-
   return (
     <div className={class_name}>
       {forceReload ? (
@@ -137,16 +151,15 @@ const ComplexNetwork = ({ project_uuid, class_name, data_type, forceReload, setF
           <ForceGraph2D
             graphData={networkData}
             nodeRelSize={8}
-            linkWidth={(link) => link.weight} 
-            linkColor={() => colorPalette.linkColor}
-            linkDirectionalArrowLength={5}  // Reduced from 10
-            linkDirectionalArrowRelPos={1}  // Slightly closer to target node
-            nodeLabel={(node) => `Node: ${node.name}`}
             nodeCanvasObject={nodeCanvasObject}
-            linkCanvasObject={linkCanvasObject}
+            nodeLabel={(node) => `Node: ${node.name}`}
+            linkDirectionalArrowLength={0}
+            linkCurvature={0}
+            linkCanvasObjectMode={() => "replace"}
+            linkCanvasObject={drawLink}
             width={700}
             height={400}
-            backgroundColor="#f4f6f7"  // Light gray background
+            backgroundColor="#f4f6f7"
           />
         </div>
       )}
